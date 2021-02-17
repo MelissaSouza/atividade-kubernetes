@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: app
+  name: app
+  namespace: AKSClusterTest
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: app
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      containers:
+      - image: aksclustertest.azurecr.io
+        imagePullPolicy: Always
+        name: backend
+        env:
+          - name: TZ
+            valueFrom:
+              configMapKeyRef:
+                name: app-configmap
+                key: TZ
+        ports:
+          - containerPort: 8080
+        readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+        livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+        resources: {}
+      restartPolicy: Always
+      serviceAccountName: ""
+status: {}
